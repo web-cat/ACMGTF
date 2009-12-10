@@ -878,8 +878,6 @@ public class TestableGraphicsProgram extends GraphicsProgram {
     
     public static abstract class Filter
     {
-
-        
         public static final Filter location(final GPoint point)
         {
             return new Filter(){
@@ -937,13 +935,7 @@ public class TestableGraphicsProgram extends GraphicsProgram {
                 return !gobj.isVisible();
             }
         };
-        
-        
-        
+                
         public abstract boolean test(GObject gobj);
-
-        
-
-
     }
 }
