@@ -816,7 +816,7 @@ public class TestableGraphicsProgram extends GraphicsProgram {
 
 	public final void mouseClicked(double x, double y)
     {
-		mouseClicked(new MouseEvent(this.getContentPane(),
+		eventListener.mouseClicked(new MouseEvent(this.getContentPane(),
 										 MouseEvent.BUTTON1,
 										 System.currentTimeMillis(),
 										 MouseEvent.BUTTON1_DOWN_MASK,
@@ -826,18 +826,6 @@ public class TestableGraphicsProgram extends GraphicsProgram {
 										 false));
     }
 
-
-//    public final void mousePressed(double x, double y)
-//    {
-//		mousePressed(new MouseEvent(this.getContentPane(),
-//				 MouseEvent.BUTTON1,
-//				 System.currentTimeMillis(),
-//				 MouseEvent.BUTTON1_DOWN_MASK,
-//				 (int) x,
-//				 (int)y,
-//				 1,
-//				 false));
-//    }
 	public final void mousePressed(double x, double y)
     {
 	    
