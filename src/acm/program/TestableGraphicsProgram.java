@@ -11,6 +11,10 @@ import abbot.finder.Matcher;
 import abbot.finder.MultipleComponentsFoundException;
 import acm.graphics.*;
 import junit.framework.Assert;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.awt.event.MouseEvent;
 
@@ -83,13 +87,21 @@ public class TestableGraphicsProgram extends GraphicsProgram {
             if(shape.isAssignableFrom(gobj.getClass()))
             {
                 for(int i = 0; i < filters.length && match; i++)
-                    match = filters[i].test(gobj);
+                   
+                        match = filters[i].test(gobj);
+                    
+                    
                 if(match)
                     return true;
             }
         }
 	    return false;
 	}
+	
+	public boolean hasGObject(Filter filter)
+    {
+        return getGObject(filter) != null;
+    }
 
 	/**
      * hasG3DRect determines existence of a G3DRect with the specified filters
@@ -349,24 +361,30 @@ public class TestableGraphicsProgram extends GraphicsProgram {
      * @return an arbitrary shape that fits the parameters passed, or null
      * if no such element exists.
      */
-    public GObject getGObject(Class shape, Filter... filters)
+    public GObject getGObject(Filter filter)
     {
         Iterator iter = iterator();
-        boolean match = false;
         while(iter.hasNext())
-        {
-            match = true;
+        {    
             GObject gobj = (GObject)iter.next();
-            if(shape.isAssignableFrom(gobj.getClass()))
-            {
-                
-                for(int i = 0; i < filters.length && match; i++)
-                    match = filters[i].test(gobj);
-                if(match)
+                if(filter.test(gobj))
                     return gobj;
-            }
         }
         return null;
+    }
+    
+    public GObject[] getAllGObjects(Filter filter)
+    {
+        ArrayList<GObject> matches = new ArrayList<GObject>();
+        Iterator iter = iterator();
+        while(iter.hasNext())
+        {
+            GObject gobj = (GObject)iter.next();
+            if(filter.test(gobj))
+                matches.add(gobj);
+        }
+        
+        return (GObject[])matches.toArray();
     }
     
     /**
@@ -383,9 +401,9 @@ public class TestableGraphicsProgram extends GraphicsProgram {
      * @return an arbitrary G3DRect that fits the parameters passed, or null
      * if no such element exists.
      */
-    public G3DRect getG3DRect(Filter... filters)
+    public G3DRect getG3DRect(Filter filter)
     {
-        return (G3DRect)getGObject(G3DRect.class, filters);
+        return (G3DRect)getGObject(filter);
     }
 
     /**
@@ -402,9 +420,9 @@ public class TestableGraphicsProgram extends GraphicsProgram {
      * @return an arbitrary GArc that fits the parameters passed, or null
      * if no such element exists.
      */
-    public GArc getGArc(Filter... filters)
+    public GArc getGArc(Filter filter)
     {
-        return (GArc)getGObject(GArc.class, filters);
+        return (GArc)getGObject(filter.and(Filter.type(GArc.class)));
     }
     
     /**
@@ -421,9 +439,9 @@ public class TestableGraphicsProgram extends GraphicsProgram {
      * @return an arbitrary GArc that fits the parameters passed, or null
      * if no such element exists.
      */
-    public GCompound getGCompound(Filter... filters)
+    public GCompound getGCompound(Filter filter)
     {
-        return (GCompound)getGObject(GCompound.class, filters);
+        return (GCompound)getGObject(filter.type(GCompound.class));
     }
     
     /**
@@ -440,9 +458,9 @@ public class TestableGraphicsProgram extends GraphicsProgram {
      * @return an arbitrary GImage that fits the parameters passed, or null
      * if no such element exists.
      */
-    public GImage getGImage(Filter... filters)
+    public GImage getGImage(Filter filter)
     {
-        return (GImage)getGObject(GImage.class, filters);
+        return (GImage)getGObject(filter.type(GImage.class));
     }
 
     /**
@@ -459,9 +477,9 @@ public class TestableGraphicsProgram extends GraphicsProgram {
      * @return an arbitrary GLine that fits the parameters passed, or null
      * if no such element exists.
      */
-    public GLine getGLine(Filter... filters)
+    public GLine getGLine(Filter filter)
     {
-        return (GLine)getGObject(GLine.class, filters);
+        return (GLine)getGObject(filter.type(GLine.class));
     }
     
     /**
@@ -478,9 +496,9 @@ public class TestableGraphicsProgram extends GraphicsProgram {
      * @return an arbitrary GOval that fits the parameters passed, or null
      * if no such element exists.
      */
-    public GOval getGOval(Filter... filters)
+    public GOval getGOval(Filter filter)
     {
-        return (GOval)getGObject(GOval.class, filters);
+        return (GOval)getGObject(filter.type(GOval.class));
     }
     
     /**
@@ -497,9 +515,9 @@ public class TestableGraphicsProgram extends GraphicsProgram {
      * @return an arbitrary GPolygon that fits the parameters passed, or null
      * if no such element exists.
      */
-    public GPolygon getGPolygon(Filter... filters)
+    public GPolygon getGPolygon(Filter filter)
     {
-        return (GPolygon)getGObject(GPolygon.class, filters);
+        return (GPolygon)getGObject(filter.type(GPolygon.class));
     }
     
     /**
@@ -516,9 +534,14 @@ public class TestableGraphicsProgram extends GraphicsProgram {
      * @return an arbitrary GRect that fits the parameters passed, or null
      * if no such element exists.
      */
-    public GRect getGRect(Filter... filters)
+    public GRect getGRect(Filter filter)
     {
-        return (GRect)getGObject(GRect.class, filters);
+        return (GRect)getGObject(filter.and(Filter.type(GRect.class)));
+    }
+    
+    public GRect getGRect()
+    {
+        return (GRect)getGObject(Filter.type(GRect.class));
     }
       
     /**
@@ -535,9 +558,9 @@ public class TestableGraphicsProgram extends GraphicsProgram {
      * @return an arbitrary GRoundRect that fits the parameters passed, or null
      * if no such element exists.
      */
-    public GRoundRect getGRoundRect(Filter... filters)
+    public GRoundRect getGRoundRect(Filter filter)
     {
-        return (GRoundRect)getGObject(GRoundRect.class, filters);
+        return (GRoundRect)getGObject(filter.type(GRoundRect.class));
     }
     
     /**
@@ -554,9 +577,9 @@ public class TestableGraphicsProgram extends GraphicsProgram {
      * @return an arbitrary GRect that fits the parameters passed, or null
      * if no such element exists.
      */
-    public GTurtle getGTurtle(Filter... filters)
+    public GTurtle getGTurtle(Filter filter)
     {
-        return (GTurtle)getGObject(GTurtle.class, filters);
+        return (GTurtle)getGObject(filter.type(GTurtle.class));
     }
     
     
@@ -878,6 +901,123 @@ public class TestableGraphicsProgram extends GraphicsProgram {
     
     public static abstract class Filter
     {
+        
+        
+
+        public final Filter and(final Filter otherFilter) 
+        {
+            final Filter self = this;
+            return new Filter(){
+                public boolean test(GObject gobj)  
+                {
+                   return self.test(gobj) && otherFilter.test(gobj);    
+                }
+            };
+        }
+        
+        public final Filter or(final Filter otherFilter)
+        {
+            final Filter self = this;
+            return new Filter(){
+                public boolean test(GObject gobj)
+                {
+                    return self.test(gobj) || otherFilter.test(gobj);
+                }
+            };
+        }
+        
+        public static final Filter not(final Filter otherFilter)
+        {
+            return new Filter(){
+                public boolean test(GObject gobj)
+                {
+                    return !otherFilter.test(gobj);
+                }
+            };
+        }
+        
+        public static final Filter contains(final GPoint point)
+        {
+            return new Filter()
+            {
+                public boolean test(GObject gobj)
+                {
+                    return (gobj.contains(point));
+                }
+            };
+        }
+        
+        public static final Filter contains(double x, double y)
+        {
+            return contains(new GPoint(x, y));
+        }
+        
+        public static final Filter near(final GPoint point)
+        {
+            return new Filter(){
+              public boolean test(GObject gobj)
+              {
+                  double distance = Math.sqrt(Math.pow(point.getX() - gobj.getX(), 2) + 
+                      Math.pow(point.getX() - gobj.getX(), 2));
+                  return distance < 50;
+              }
+            };
+        }
+        
+        public static final Filter near(double x, double y)
+        {
+            return near(new GPoint(x,y));
+        }
+        
+        public static final Filter near(final GPoint point, final double distance)
+        {
+            return new Filter(){
+                public boolean test(GObject gobj)
+                {
+                    double d = Math.sqrt(Math.pow(point.getX() - gobj.getX(), 2) + 
+                        Math.pow(point.getX() - gobj.getX(), 2));
+                    return d < distance;
+                }
+              };
+        }
+        
+        public static final Filter near(double x, double y, double distance)
+        {
+            return near(new GPoint(x, y), distance);
+        }
+        
+        public static final Filter lineStartingAt(final GPoint point)
+        {
+            return new Filter(){
+                public boolean test(GObject gobj)
+                {
+                    if(!(gobj instanceof GLine))
+                        return false;
+                    return ((GLine)gobj).getStartPoint().equals(point);
+                }
+            };
+        }
+        
+        public static final Filter lineStartingAt(double x, double y)
+        {
+            return lineStartingAt(new GPoint(x, y));
+        }
+        public static final Filter lineEndingAt(final GPoint point)
+        {
+            return new Filter(){
+                public boolean test(GObject gobj)
+                {
+                    if(!(gobj instanceof GLine))
+                        return false;
+                    return ((GLine)gobj).getEndPoint().equals(point);
+                }
+            };
+        }
+        
+        public static final Filter lineEndingAt(double x, double y)
+        {
+            return lineEndingAt(new GPoint(x, y));
+        }
         public static final Filter location(final GPoint point)
         {
             return new Filter(){
@@ -889,6 +1029,17 @@ public class TestableGraphicsProgram extends GraphicsProgram {
                 }
             };
         }
+        
+        public static final Filter withText(final String text)
+        {
+            return new Filter(){
+                public boolean test(GObject gobj)
+                {
+                    return gobj instanceof GLabel ? ((GLabel)gobj).getLabel().equals(text) : false;
+                }
+            };
+        }
+       
         
         public static final Filter location(double x, double y)
         {
@@ -905,6 +1056,42 @@ public class TestableGraphicsProgram extends GraphicsProgram {
                     return false;
                 }
                 
+            };
+        }
+        
+        public static final Filter height(final int height)
+        {
+            return new Filter(){
+                public boolean test( GObject gobj )
+                {
+                    if(gobj.getHeight() == height)
+                        return true;
+                    return false;
+                }
+                
+            };
+        }
+        
+        public static final Filter color(final Color color)
+        {
+            return new Filter(){
+                public boolean test( GObject gobj )
+                {
+                    if(gobj.getColor().equals(color))
+                        return true;
+                    return false;
+                }
+                
+            };
+        }
+        
+        public static final Filter type(final Class c)
+        {
+            return new Filter(){
+                public boolean test(GObject gobj)
+                {
+                    return c.isAssignableFrom(gobj.getClass());
+                }
             };
         }
         
@@ -935,6 +1122,14 @@ public class TestableGraphicsProgram extends GraphicsProgram {
                 return !gobj.isVisible();
             }
         };
+        
+        public static final Filter any = new Filter() {
+            public boolean test(GObject gobj)
+            {
+                return true;
+            }
+        };
+        
                 
         public abstract boolean test(GObject gobj);
     }
