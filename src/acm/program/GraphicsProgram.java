@@ -609,6 +609,16 @@ class GProgramListener implements MouseListener, MouseMotionListener {
 			} catch (NoSuchMethodException ex) {
 				/* Empty */
 			}
+			try {
+                mouseEnteredHook = programClass.getMethod("mouseEntered", types);
+            } catch (NoSuchMethodException ex) {
+                /* Empty */
+            }
+            try {
+                mouseExitedHook = programClass.getMethod("mouseExited", types);
+            } catch (NoSuchMethodException ex) {
+                /* Empty */
+            }
 		} catch (Exception ex) {
 			throw new ErrorException(ex);
 		}
@@ -673,7 +683,14 @@ class GProgramListener implements MouseListener, MouseMotionListener {
  * Called by the event-handling system when the mouse enters the component.
  */
 	public void mouseEntered(MouseEvent e) {
-		/* Empty */
+	    if (mouseEnteredHook != null) {
+            Object[] args = { new GPoint(e.getX(), e.getY()) };
+            try {
+                mouseEnteredHook.invoke(myProgram, args);
+            } catch (Exception ex) {
+                throw new ErrorException(ex);
+            }
+        }
 	}
 
 /* Method: mouseExited() */
@@ -681,7 +698,14 @@ class GProgramListener implements MouseListener, MouseMotionListener {
  * Called by the event-handling system when the mouse leaves the component.
  */
 	public void mouseExited(MouseEvent e) {
-		/* Empty */
+	    if (mouseExitedHook != null) {
+            Object[] args = { new GPoint(e.getX(), e.getY()) };
+            try {
+                mouseExitedHook.invoke(myProgram, args);
+            } catch (Exception ex) {
+                throw new ErrorException(ex);
+            }
+        }
 	}
 
 /* Method: mouseMoved() */
@@ -747,6 +771,8 @@ class GProgramListener implements MouseListener, MouseMotionListener {
 	private Method mouseClickedHook;
 	private Method mouseMovedHook;
 	private Method mouseDraggedHook;
+	private Method mouseEnteredHook;
+	private Method mouseExitedHook;
 	private boolean clickFlag;
 
 }
