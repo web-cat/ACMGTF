@@ -1,379 +1,99 @@
 package acm.program;
 
-import java.awt.Button;
 import java.awt.Color;
-import java.awt.Component;
+import java.awt.event.MouseEvent;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 
-import abbot.finder.BasicFinder;
-import abbot.finder.ComponentFinder;
-import abbot.finder.ComponentNotFoundException;
-import abbot.finder.Matcher;
-import abbot.finder.MultipleComponentsFoundException;
-import acm.graphics.*;
 import junit.framework.Assert;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.awt.event.MouseEvent;
-
-import javax.swing.JButton;
-
-import acm.program.GraphicsProgram;
-
-public class TestableGraphicsProgram extends GraphicsProgram {
-
-	/**
-     * hasGraphicObject determines existence of a graphic object with the specified
-     * parameters. Every parameter can be passed null to mean "any".
-     *
-     * @param shape     the shape of the object. null for any shape.
-     * @param loc       the location of the object on the canvas, null for any
-     *                  location.
-     * @param width     the width of the object, null for any width.
-     * @param height    the height of the object, null for any height.
-     * @param color     the color of the object, null for any color.
-     * @param visible   whether the object is visible on the canvas or not.
-     *                  pass null, if either.
-     *
-     * @return true if it has the 2D object specified, false if not.
-     */
-    @SuppressWarnings("unchecked")
-    public boolean hasGraphicObject(Class shape, GPoint loc, Double width, Double height, Color color, Boolean filled, Boolean visible)
-	{
-		Iterator iter = iterator();
-
-        while(iter.hasNext())
-        {
-            GObject obj = (GObject)iter.next();
-            if(obj instanceof GObject)
-            {
-                if((shape == null || shape.isAssignableFrom(obj.getClass())) &&
-                   ((loc == null ) || (loc.equals(obj.getLocation()))) &&
-                   (width == null || width.doubleValue() == obj.getWidth()) &&
-                   (height == null || height.doubleValue() == obj.getHeight()) &&
-                   (color == null || color.equals(obj.getColor())) &&
-                   (filled == null || (GFillable.class.isAssignableFrom(obj.getClass()) && filled.booleanValue() == ((GFillable)obj).isFilled())) &&
-                   (visible == null || visible.booleanValue() == obj.isVisible()))
-                    return true;
-            }
-        }
-		return false;
-	}
-	
-	/**
-     * hasGObject determines existence of a graphic object with the specified filters
-     * 
-     *
-     * @param shape     the shape of the object. null for any shape.
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would return an an arbitrary GOval that is not filled but is visible
-     *
-     * @return true if it has the 2D object specified, false if not.
-     */
-	public boolean hasGObject(Class shape, Filter... filters)
-	{
-	    boolean match = false;
-	    
-	    Iterator iter = iterator();
-        while(iter.hasNext())
-        {
-            match = true;
-            GObject gobj = (GObject)iter.next();
-            if(shape.isAssignableFrom(gobj.getClass()))
-            {
-                for(int i = 0; i < filters.length && match; i++)
-                   
-                        match = filters[i].test(gobj);
-                    
-                    
-                if(match)
-                    return true;
-            }
-        }
-	    return false;
-	}
-	
-	public boolean hasGObject(Filter filter)
-    {
-        return getGObject(filter) != null;
-    }
-
-	/**
-     * hasG3DRect determines existence of a G3DRect with the specified filters
-     * 
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return true if it has the 2D object specified, false if not.
-     */
-    public boolean hasG3DRect(Filter... filters)
-    {
-        return hasGObject(G3DRect.class, filters);
-    }
-	
-    /**
-     * hasGArc determines existence of a GArc with the specified filters
-     * 
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would return an an arbitrary GOval that is not filled but is visible
-     *
-     * @return true if it has the 2D object specified, false if not.
-     */
-    public boolean hasGArc(Filter... filters)
-    {
-        return hasGObject(GArc.class, filters);
-    }
-    
-    /**
-     * hasGCompound determines existence of a GCompound with the specified filters
-     * 
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would return an an arbitrary GOval that is not filled but is visible
-     *
-     * @return true if it has the 2D object specified, false if not.
-     */
-    public boolean hasGCompound(Filter... filters)
-    {
-        return hasGObject(GCompound.class, filters);
-    }
-
-    /**
-     * hasGImage determines existence of a GImage with the specified filters
-     * 
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would return an an arbitrary GOval that is not filled but is visible
-     *
-     * @return true if it has the 2D object specified, false if not.
-     */
-    public boolean hasGImage(Filter... filters)
-    {
-        return hasGObject(GImage.class, filters);
-    }
-    
-    /**
-     * hasGLine determines existence of a GLine with the specified filters
-     * 
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return true if it has the 2D object specified, false if not.
-     */
-    public boolean hasGLine(Filter... filters)
-    {
-        return hasGObject(GLine.class, filters);
-    }
-
-    /**
-     * hasGOval determines existence of a GOval with the specified filters
-     * 
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return true if it has the 2D object specified, false if not.
-     */
-    public boolean hasGOval(Filter... filters)
-    {
-        return hasGObject(GOval.class, filters);
-    }
-
-    /**
-     * hasGPolygon determines existence of a GPolyGon with the specified filters
-     * 
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return true if it has the GTurtle specified, false if not.
-     */
-    public boolean hasGPolygon(Filter... filters)
-    {
-        return hasGObject(GPolygon.class, filters);
-    }
-    
-	/**
-     * hasGRect determines existence of a GRect with the specified filters
-     * 
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would return an an arbitrary GOval that is not filled but is visible
-     *
-     * @return true if it has the 2D object specified, false if not.
-     */
-    public boolean hasGRect(Filter... filters)
-    {
-        return hasGObject(GRect.class, filters);
-    }
-    
-    /**
-     * hasGRoundRect determines existence of a GRoundRect with the specified filters
-     * 
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return true if it has the 2D object specified, false if not.
-     */
-    public boolean hasGRoundRect(Filter... filters)
-    {
-        return hasGObject(GRoundRect.class, filters);
-    }
-    
-    /**
-     * hasGTurtle determines existence of a GTurtle with the specified filters
-     * 
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return true if it has the GTurtle specified, false if not.
-     */
-    public boolean hasGTurtle(Filter... filters)
-    {
-        return hasGObject(GTurtle.class, filters);
-    }
-    
-    
-    
-	/**
-     * hasLine returns determines the existence of a line with the specified parameters.
-     * Any of the parameters can be null to mean "dont care".
-     *
-     * @param start     the starting point of the line, null for any starting location
-     * @param end       the end location of the line, null for any end location
-     * @param color     the color of the line, null for any color.
-     * @param visible   whether the line is visible on the canvas or not.
-     *                  pass null, if either.
-     *
-     * @return  true if the line exists.
-     */
-	public boolean hasLine(GPoint start, GPoint end, Color color, Boolean visible)
-	{
-		Iterator iter = iterator();
-        while(iter.hasNext())
-        {
-            GObject obj = (GObject)iter.next();
-            if(obj instanceof GLine)
-            {
-            	GLine x = (GLine)obj;
-            	//NOTE:  .equals may not work check when testing.
-                if(((start == null ) || (start.equals(x.getStartPoint()))) &&
-                   ((end == null ) || (end.equals(x.getEndPoint()))) &&
-                   (color == null || color.equals(x.getColor())) &&
-                   (visible == null || visible.booleanValue() == x.isVisible()))
-                   return true;
-            }
-        }
-        return false;
-	}
-
-	/**
-     * getGraphicObject returns an arbitrary shape that meets the specified parameters.
-     * That arbitrary shape is the first one that appears in the DrawableIterator
-     * for the canvas.  A null parameter can mean "any"
-     *
-     * @param shape     the shape of the object. null for any shape.
-     * @param loc       the location of the object on the canvas, null for any
-     *                  location.
-     * @param width     the width of the object, null for any width.
-     * @param height    the height of the object, null for any height.
-     * @param color     the color of the object, null for any color.
-     * @param visible   whether the object is visible on the canvas or not.
-     *                  pass null, if either.
-     *
-     * @return an arbitrary shape that fits the parameters passed, or null
-     * if no such element exists.
-     */
-    public GObject getGraphicObject(Class shape, GPoint loc, Double width, Double height, Color color, Boolean filled, Boolean visible)
-    {
-		Iterator iter = iterator();
-
-        while(iter.hasNext())
-        {
-            GObject obj = (GObject)iter.next();
-            if(obj instanceof GObject)
-            {
-                if((shape == null || shape.isAssignableFrom(obj.getClass())) &&
-                   ((loc == null ) || (loc.equals(obj.getLocation()))) &&
-                   (width == null || width.doubleValue() == obj.getWidth()) &&
-                   (height == null || height.doubleValue() == obj.getHeight()) &&
-                   (color == null || color.equals(obj.getColor())) &&
-                   (filled == null || (GFillable.class.isAssignableFrom(obj.getClass()) && filled.booleanValue() == ((GFillable)obj).isFilled())) &&
-                   (visible == null || visible.booleanValue() == obj.isVisible()))
-                    return obj;
-            }
-        }
-    	return null;
-    }
-    
+import acm.graphics.GFillable;
+import acm.graphics.GLabel;
+import acm.graphics.GLine;
+import acm.graphics.GObject;
+import acm.graphics.GPoint;
+import acm.program.Filter;
+public class TestableGraphicsProgram extends GraphicsProgram
+{
     /**
      * getGObject returns an arbitrary shape that meets the specified parameters.
      * That arbitrary shape is the first one that appears in the DrawableIterator
      * for the canvas.  
      *
      * @param shape     the shape of the object. null for any shape.
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
+     * @param filter    a Filter object that specifies which GObject to return
      *
      * @return an arbitrary shape that fits the parameters passed, or null
      * if no such element exists.
      */
-    public GObject getGObject(Filter filter)
+    public GObject getGObject(GraphicFilter filter)
     {
         Iterator iter = iterator();
         while(iter.hasNext())
         {    
             GObject gobj = (GObject)iter.next();
-                if(filter.test(gobj))
-                    return gobj;
+            if(filter.test(gobj))
+                return gobj;
         }
         return null;
     }
     
-    public GObject[] getAllGObjects(Filter filter)
+    public <T extends GObject> T getGObject(Class<T> type, GraphicFilter filter)
+    {
+        return (T)getGObject(filter.and(GraphicFilter.type(type)));
+    }
+    
+    public GObject getExactlyOneGObject(GraphicFilter filter)
+    {
+        IllegalStateException ise;
+        
+        GObject[] gobjs = getAllGObjects(filter);
+        
+        if(gobjs.length == 0)
+        {
+            ise = new IllegalStateException("No GObjects matching filter found.");
+            StackTraceElement[] stack = ise.getStackTrace();
+            for(StackTraceElement ste : stack)
+            {
+                if(ste.getClassName().startsWith("org.junit.") || ste.getClassName().startsWith("junit."))
+                {
+                    Assert.fail(ise.getMessage());
+                }
+            }
+            throw ise;
+        }
+        else if(gobjs.length > 1)
+        {
+            ise = new IllegalStateException("Multiple GObjects matching filter found.");
+            StackTraceElement[] stack = ise.getStackTrace();
+            for(StackTraceElement ste : stack)
+            {
+                if(ste.getClassName().startsWith("org.junit.") || ste.getClassName().startsWith("junit."))
+                {
+                    Assert.fail(ise.getMessage());
+                }
+            }
+            throw ise;
+        }
+        return gobjs[0];               
+    }
+    
+    public <T extends GObject> T getExactlyOneGObject(Class<T> type, GraphicFilter filter)
+    {
+        return (T)getExactlyOneGObject(filter.and(GraphicFilter.type(type)));
+    }
+    
+    /**
+     * getAllGObjects returns all GObjects on the canvas that meets the specified parameters.
+     *
+     * @param shape     the shape of the object. null for any shape.
+     * @param filter    a Filter object that specifies which GObjects to return
+     *
+     * @return an array of all of the GObjects that match the filter criteria
+     */
+    public GObject[] getAllGObjects(GraphicFilter filter)
     {
         ArrayList<GObject> matches = new ArrayList<GObject>();
         Iterator iter = iterator();
@@ -383,373 +103,55 @@ public class TestableGraphicsProgram extends GraphicsProgram {
             if(filter.test(gobj))
                 matches.add(gobj);
         }
-        
-        return (GObject[])matches.toArray();
-    }
-    
-    /**
-     * getG3DRect returns an arbitrary G3DRect that meets the specified parameters.
-     * That arbitrary shape is the first one that appears in the DrawableIterator
-     * for the canvas.  
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return an arbitrary G3DRect that fits the parameters passed, or null
-     * if no such element exists.
-     */
-    public G3DRect getG3DRect(Filter filter)
-    {
-        return (G3DRect)getGObject(filter);
-    }
-
-    /**
-     * getGArc returns an arbitrary GArc that meets the specified parameters.
-     * That arbitrary shape is the first one that appears in the DrawableIterator
-     * for the canvas.  
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return an arbitrary GArc that fits the parameters passed, or null
-     * if no such element exists.
-     */
-    public GArc getGArc(Filter filter)
-    {
-        return (GArc)getGObject(filter.and(Filter.type(GArc.class)));
-    }
-    
-    /**
-     * getGCompound returns an arbitrary GCompound that meets the specified parameters.
-     * That arbitrary shape is the first one that appears in the DrawableIterator
-     * for the canvas.  
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return an arbitrary GArc that fits the parameters passed, or null
-     * if no such element exists.
-     */
-    public GCompound getGCompound(Filter filter)
-    {
-        return (GCompound)getGObject(filter.type(GCompound.class));
-    }
-    
-    /**
-     * getGImage returns an arbitrary GImage that meets the specified parameters.
-     * That arbitrary shape is the first one that appears in the DrawableIterator
-     * for the canvas.  
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return an arbitrary GImage that fits the parameters passed, or null
-     * if no such element exists.
-     */
-    public GImage getGImage(Filter filter)
-    {
-        return (GImage)getGObject(filter.type(GImage.class));
-    }
-
-    /**
-     * getGLine returns an arbitrary GLine that meets the specified parameters.
-     * That arbitrary shape is the first one that appears in the DrawableIterator
-     * for the canvas.  
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return an arbitrary GLine that fits the parameters passed, or null
-     * if no such element exists.
-     */
-    public GLine getGLine(Filter filter)
-    {
-        return (GLine)getGObject(filter.type(GLine.class));
-    }
-    
-    /**
-     * getGOval returns an arbitrary GOval that meets the specified parameters.
-     * That arbitrary shape is the first one that appears in the DrawableIterator
-     * for the canvas.  
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return an arbitrary GOval that fits the parameters passed, or null
-     * if no such element exists.
-     */
-    public GOval getGOval(Filter filter)
-    {
-        return (GOval)getGObject(filter.type(GOval.class));
-    }
-    
-    /**
-     * getGPolygon returns an arbitrary GPolygon that meets the specified parameters.
-     * That arbitrary shape is the first one that appears in the DrawableIterator
-     * for the canvas.  
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return an arbitrary GPolygon that fits the parameters passed, or null
-     * if no such element exists.
-     */
-    public GPolygon getGPolygon(Filter filter)
-    {
-        return (GPolygon)getGObject(filter.type(GPolygon.class));
-    }
-    
-    /**
-     * getGRect returns an arbitrary GRect that meets the specified parameters.
-     * That arbitrary shape is the first one that appears in the DrawableIterator
-     * for the canvas.  
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return an arbitrary GRect that fits the parameters passed, or null
-     * if no such element exists.
-     */
-    public GRect getGRect(Filter filter)
-    {
-        return (GRect)getGObject(filter.and(Filter.type(GRect.class)));
-    }
-    
-    public GRect getGRect()
-    {
-        return (GRect)getGObject(Filter.type(GRect.class));
-    }
-      
-    /**
-     * getGRoundRect returns an arbitrary GRoundRect that meets the specified parameters.
-     * That arbitrary shape is the first one that appears in the DrawableIterator
-     * for the canvas.  
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return an arbitrary GRoundRect that fits the parameters passed, or null
-     * if no such element exists.
-     */
-    public GRoundRect getGRoundRect(Filter filter)
-    {
-        return (GRoundRect)getGObject(filter.type(GRoundRect.class));
-    }
-    
-    /**
-     * getGTurtle returns an arbitrary GTurtle that meets the specified parameters.
-     * That arbitrary shape is the first one that appears in the DrawableIterator
-     * for the canvas.  
-     *
-     * @param filters   an array of pairs of Filters and values for the filters
-     *                  ex. hasGObject(GRect.class, Filter.LOCATION, new GPoint(10, 10)
-     *                  would return an arbitrary GRect located at (10, 10)
-     *                  ex. hasGObject(GOval.class, Filter.FILLED, false, Filter.VISIBLE, true)
-     *                  would returan an arbitrary GOval that is not filled but is visible
-     *
-     * @return an arbitrary GRect that fits the parameters passed, or null
-     * if no such element exists.
-     */
-    public GTurtle getGTurtle(Filter filter)
-    {
-        return (GTurtle)getGObject(filter.type(GTurtle.class));
-    }
-    
-    
-
-    /**
-     * getGLabelWithText returns the first GLabel with a specified string
-     * 
-     * @param labelText the string to search for
-     *      
-     * @return  a GLabel that fits the parameter passed, or null if none exists
-     */
-    public GLabel getGLabelWithText(String labelText)
-    {
-        Iterator iter = iterator();
-        
-        while(iter.hasNext())
+        GObject[] gobjs = new GObject[matches.size()];
+        int i = 0;
+        for(GObject gobj : matches)
         {
-            Object obj = iter.next();
-            if(obj instanceof GLabel)
-            {
-                GLabel gLabel = (GLabel)obj;
-                if(gLabel.getLabel().equals(labelText))
-                    return gLabel;
-            }
+            gobjs[i] = gobj;
+            i++;
         }
-        return null;    
+        return gobjs;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public <T extends GObject> T[] getAllGObjects(Class<T> type, GraphicFilter filter)
+    {
+        GObject[] gobjs = getAllGObjects(filter.and(GraphicFilter.type(type)));
+
+        T[] tobjs = (T[]) Array.newInstance(type, gobjs.length);
+        for (int i = 0; i < gobjs.length; i++)
+        {
+            tobjs[i] = (T) gobjs[i];
+        }
+
+        return tobjs;
     }
     
     /**
-     * hasGLabelWithText determines the existence of a GLabel with the specified string
-     * 
-     * @param labelText     the label to search for
-     * 
-     * @return  true if a label with the specified string is found
-     */
-    public boolean hasGLabelWithText(String labelText)
-    {
-        Iterator iter = iterator();
-        
-        while(iter.hasNext())
-        {
-            Object obj = iter.next();
-            if(obj instanceof GLabel)
-            {
-                GLabel gLabel = (GLabel)obj;
-                if(gLabel.getLabel().equals(labelText))
-                    return true;
-            }
-        }
-        
-        return false;
-    }
-	/**
-     * getLine returns an arbitrary Line object that fits the parameters that are passed to
-     * the function.  A null parameter means "any."
+     * hasGObject determines existence of a graphic object that matches the
+     * specified filter
      *
-     * @param start     the starting point of the line, null for any starting location
-     * @param end       the end location of the line, null for any end location
-     * @param color     the color of the line, null for any color.
-     * @param visible   whether the line is visible on the canvas or not.
-     *                  pass null, if either.
-     *
-     * @return  an arbitrary Line that fits the parameters passed, or null, if no such line exists.
-     */
-    public GLine getLine(GPoint start, GPoint end, Color color, Boolean visible)
-    {
-		Iterator iter = iterator();
-        while(iter.hasNext())
-        {
-            GObject obj = (GObject)iter.next();
-            if(obj instanceof GLine)
-            {
-            	GLine x = (GLine)obj;
-            	//NOTE:  .equals may not work check when testing.
-                if(((start == null ) || (start.equals(obj.getLocation()))) &&
-                   ((end == null ) || (end.equals(obj.getLocation()))) &&
-                   (color == null || color.equals(obj.getColor())) &&
-                   (visible == null || visible.booleanValue() == obj.isVisible()))
-                   return x;
-            }
-        }
-        return null;
-    }
-
-	/**
-     * assertHasLine asserts the existence of a line with the specified parameters.
-     * This method fails if no such line exists.
-     *
-     * @param start     the starting point of the line, null for any starting location
-     * @param end       the end location of the line, null for any end location
-     * @param color     the color of the line, null for any color.
-     * @param visible   whether the line is visible on the canvas or not.
-     *                  pass null, if either.
-     *
-     */
-    public void assertHasLine(GPoint start, GPoint end, Color color, Boolean visible)
-    {
-        if(!hasLine(start, end, color, visible))
-            Assert.fail();
-    }
-
-	/**
-     * assertNoLine asserts the non-existence of a line with the specified parameters.
-     * This method fails if such line exists.
-     *
-     * @param start     the starting point of the line, null for any starting location
-     * @param end       the end location of the line, null for any end location
-     * @param color     the color of the line, null for any color.
-     * @param visible   whether the line is visible on the canvas or not.
-     *                  pass null, if either.
-     *
-     */
-    public void assertNoLine(GPoint start, GPoint end, Color color, Boolean visible)
-    {
-        if(hasLine(start, end, color, visible))
-            Assert.fail();
-    }
-
-	/**
-     * assert version of has2DObject that has a specific hint to the user.
-     *
-     * @param hint      error message that should be displayed for a failed assertion
      * @param shape     the shape of the object. null for any shape.
-     * @param loc       the location of the object on the canvas, null for any
-     *                  location.
-     * @param width     the width of the object, null for any width.
-     * @param height    the height of the object, null for any height.
-     * @param color     the color of the object, null for any color.
-     * @param visible   whether the object is visible on the canvas or not.
-     *                  pass null, if either.
+     * @param filter    a Filter object that specifies which GObjects to search for
+     *
+     * @return true if it has the 2D object specified, false if not.
      */
-    public void assertHas2DObject(String hint, Class shape, GPoint loc, Double width, Double height, Color color, Boolean filled, Boolean visible)
+    public boolean hasGObject(GraphicFilter filter)
     {
-        if(!hasGraphicObject(shape, loc, width, height, color, filled, visible))
-            Assert.fail(hint);
+        return getGObject(filter) != null;
     }
-
+    
     /**
      * assert version of hasGObject that has a specific hint to the user.
      *
      * @param hint      error message that should be displayed for a failed assertion
      * @param filters   array of filters to use describing the object to be found
      */
-    public void assertHasGObject(String hint, Class shape, Filter... filters)
+    public void assertHasGObject(String hint, GraphicFilter filter)
     {
-        if(!hasGObject(shape, filters))
+        if(!hasGObject(filter))
             Assert.fail(hint);
     }
-	/**
-     * inverse of assertHas2DObject, this method will fail if an object specified
-     * by the parameters is found, suceed otherwise.  Prints a custom message in
-     * the event of failure.
-     *
-     * @param hint      error message that should be displayed for a failed assertion
-     * @param shape     the shape of the object. null for any shape.
-     * @param loc       the location of the object on the canvas, null for any
-     *                  location.
-     * @param width     the width of the object, null for any width.
-     * @param height    the height of the object, null for any height.
-     * @param color     the color of the object, null for any color.
-     * @param visible   whether the object is visible on the canvas or not.
-     *                  pass null, if either.
-     *
-     */
-    public void assertNo2DObject(String hint, Class shape, GPoint loc, Double width, Double height, Color color, Boolean filled, Boolean visible)
-    {
-        if(hasGraphicObject(shape, loc, width, height, color, filled, visible))
-            Assert.fail(hint);
-    }
-    
     
     /**
      * inverse of assertHasGObject, this method will fail if an object specified
@@ -760,98 +162,27 @@ public class TestableGraphicsProgram extends GraphicsProgram {
      * @param filters   array of filters to use describing the object to be found
      *
      */
-    public void assertNoGObject(String hint, Class shape, Filter... filters)
+    public void assertNoGObject(String hint, GraphicFilter filter)
     {
-        if(hasGObject(shape, filters))
+        if(hasGObject(filter))
             Assert.fail(hint);
     }
 
-	/**
-     * assertHasLine asserts the existence of a line with the specified parameters.
-     * This method fails if no such line exists.  Prints a custom error message in the event
-     * of failure.
-     *
-     * @param hint      error message that should be displayed for a failed assertion
-     * @param start     the starting point of the line, null for any starting location
-     * @param end       the end location of the line, null for any end location
-     * @param color     the color of the line, null for any color.
-     * @param visible   whether the line is visible on the canvas or not.
-     *                  pass null, if either.
-     *
-     */
-    public void assertHasLine(String hint, GPoint start, GPoint end, Color color, Boolean visible)
+    public final void mouseClicked(double x, double y)
     {
-        if(!hasLine(start, end, color, visible))
-            Assert.fail(hint);
+        eventListener.mouseClicked(new MouseEvent(this.getContentPane(),
+                                         MouseEvent.BUTTON1,
+                                         System.currentTimeMillis(),
+                                         MouseEvent.BUTTON1_DOWN_MASK,
+                                         (int) x,
+                                         (int)y,
+                                         1,
+                                         false));
     }
 
-	/**
-     * assertNoLine asserts the non-existence of a line with the specified parameters.
-     * This method fails if such line exists.  Displays a custom error message in the event
-     * of failure.
-     *
-     * @param hint      error message that should be displayed for a failed assertion.
-     * @param start     the starting point of the line, null for any starting location
-     * @param end       the end location of the line, null for any end location
-     * @param color     the color of the line, null for any color.
-     * @param visible   whether the line is visible on the canvas or not.
-     *                  pass null, if either.
-     *
-     */
-    public void assertNoLine(String hint, GPoint start, GPoint end, Color color, Boolean visible)
+    public final void mousePressed(double x, double y)
     {
-        if(hasLine(start, end, color, visible))
-            Assert.fail(hint);
-    }
-    
-    /**
-     * assertHasGLabelWithText asserts the existence of a GLabel with the specified string.
-     * This method fails if such a GLabel does not exist.  Displays a custom error message in the event
-     * of failure.
-     *
-     * @param hint      error message that should be displayed for a failed assertion.
-     * @param labelText the label text to search for
-     *
-     */
-    public void assertHasGLabelWithText(String hint, String labelText)
-    {
-        if(!hasGLabelWithText(labelText))
-            Assert.fail(hint);
-    }
-    
-    /**
-     * assertHasGLabelWithText asserts the non-existence of a GLabel with the specified string.
-     * This method fails if such a GLabel exists.  Displays a custom error message in the event
-     * of failure.
-     *
-     * @param hint      error message that should be displayed for a failed assertion.
-     * @param labelText the label text to search for
-     *
-     */
-    public void assertNoGLabelWithText(String hint, String labelText)
-    {
-        if(hasGLabelWithText(labelText))
-            Assert.fail(hint);
-    }
-    
-
-
-
-	public final void mouseClicked(double x, double y)
-    {
-		eventListener.mouseClicked(new MouseEvent(this.getContentPane(),
-										 MouseEvent.BUTTON1,
-										 System.currentTimeMillis(),
-										 MouseEvent.BUTTON1_DOWN_MASK,
-										 (int) x,
-										 (int)y,
-										 1,
-										 false));
-    }
-
-	public final void mousePressed(double x, double y)
-    {
-	    
+        
         eventListener.mousePressed(new MouseEvent(this.getContentPane(),
                  MouseEvent.BUTTON1,
                  System.currentTimeMillis(),
@@ -862,99 +193,149 @@ public class TestableGraphicsProgram extends GraphicsProgram {
                  false));
     }
    
-
     public final void mouseDragged(double x, double y)
     {
-		eventListener.mouseDragged(new MouseEvent(this.getContentPane(),
-				 MouseEvent.BUTTON1,
-				 System.currentTimeMillis(),
-				 MouseEvent.BUTTON1_DOWN_MASK,
-				 (int) x,
-				 (int)y,
-				 1,
-				 false));
+        eventListener.mouseDragged(new MouseEvent(this.getContentPane(),
+                 MouseEvent.BUTTON1,
+                 System.currentTimeMillis(),
+                 MouseEvent.BUTTON1_DOWN_MASK,
+                 (int) x,
+                 (int)y,
+                 1,
+                 false));
     }
 
     public final void mouseReleased(double x, double y)
     {
-		eventListener.mouseReleased(new MouseEvent(this.getContentPane(),
-				 MouseEvent.BUTTON1,
-				 System.currentTimeMillis(),
-				 MouseEvent.BUTTON1_DOWN_MASK,
-				 (int) x,
-				 (int)y,
-				 1,
-				 false));
+        eventListener.mouseReleased(new MouseEvent(this.getContentPane(),
+                 MouseEvent.BUTTON1,
+                 System.currentTimeMillis(),
+                 MouseEvent.BUTTON1_DOWN_MASK,
+                 (int) x,
+                 (int)y,
+                 1,
+                 false));
     }
 
     public final void mouseMoved(double x, double y)
     {
-		eventListener.mouseMoved(new MouseEvent(this.getContentPane(),
-				 MouseEvent.BUTTON1,
-				 System.currentTimeMillis(),
-				 MouseEvent.BUTTON1_DOWN_MASK,
-				 (int) x,
-				 (int)y,
-				 1,
-				 false));
+        eventListener.mouseMoved(new MouseEvent(this.getContentPane(),
+                 MouseEvent.BUTTON1,
+                 System.currentTimeMillis(),
+                 MouseEvent.BUTTON1_DOWN_MASK,
+                 (int) x,
+                 (int)y,
+                 1,
+                 false));
     }
     
-    public static abstract class Filter
+    public final void mouseEntered()
     {
-        
-        
-
-        public final Filter and(final Filter otherFilter) 
+        eventListener.mouseEntered(new MouseEvent(this.getContentPane(),
+                MouseEvent.MOUSE_ENTERED,
+                System.currentTimeMillis(),
+                MouseEvent.BUTTON1,
+                1,
+                1,
+                1,
+                false));
+    }
+    public final void mouseExited()
+    {
+        eventListener.mouseExited(new MouseEvent(this.getContentPane(),
+                MouseEvent.MOUSE_EXITED,
+                System.currentTimeMillis(),
+                MouseEvent.BUTTON1,
+                1,
+                1,
+                1,
+                false));
+    }
+    
+    public final void mouseEntered(double x, double y)
+    {
+        eventListener.mouseEntered(new MouseEvent(this.getContentPane(),
+                MouseEvent.MOUSE_ENTERED,
+                System.currentTimeMillis(),
+                MouseEvent.BUTTON1,
+                (int) x,
+                (int) y,
+                1,
+                false));
+    }
+    public final void mouseExited(double x, double y)
+    {
+        eventListener.mouseExited(new MouseEvent(this.getContentPane(),
+                MouseEvent.MOUSE_EXITED,
+                System.currentTimeMillis(),
+                MouseEvent.BUTTON1,
+                (int) x,
+                (int) y,
+                1,
+                false));
+    }
+    
+    public static abstract class GraphicFilter extends Filter
+    {
+        public final GraphicFilter and(final GraphicFilter otherFilter) 
         {
-            final Filter self = this;
-            return new Filter(){
+            final GraphicFilter self = this;
+            GraphicFilter f =  new GraphicFilter(){
                 public boolean test(GObject gobj)  
                 {
                    return self.test(gobj) && otherFilter.test(gobj);    
                 }
             };
+            f.description = "(" + this.description + " AND " + otherFilter.description + ")";
+            return f;
         }
         
-        public final Filter or(final Filter otherFilter)
+        public final GraphicFilter or(final GraphicFilter otherFilter)
         {
-            final Filter self = this;
-            return new Filter(){
+            final GraphicFilter self = this;
+            GraphicFilter f = new GraphicFilter(){
                 public boolean test(GObject gobj)
                 {
                     return self.test(gobj) || otherFilter.test(gobj);
                 }
             };
+            f.description = "(" + this.description + " OR " + otherFilter.description + ")";
+            return f;
         }
         
-        public static final Filter not(final Filter otherFilter)
+        public static final GraphicFilter not(final GraphicFilter otherFilter)
         {
-            return new Filter(){
+            GraphicFilter f = new GraphicFilter(){
                 public boolean test(GObject gobj)
                 {
                     return !otherFilter.test(gobj);
                 }
             };
+            f.description = " NOT " + otherFilter.description;
+            return f;
         }
         
-        public static final Filter contains(final GPoint point)
+        public static final GraphicFilter contains(final GPoint point)
         {
-            return new Filter()
+            GraphicFilter f = new GraphicFilter()
             {
                 public boolean test(GObject gobj)
                 {
                     return (gobj.contains(point));
                 }
             };
+            f.description = "contains ("+ point.getX() + ", " + point.getY() + ")";
+            return f;
         }
         
-        public static final Filter contains(double x, double y)
+        public static final GraphicFilter contains(double x, double y)
         {
             return contains(new GPoint(x, y));
         }
         
-        public static final Filter near(final GPoint point)
+        public static final GraphicFilter near(final GPoint point)
         {
-            return new Filter(){
+            GraphicFilter f = new GraphicFilter(){
               public boolean test(GObject gobj)
               {
                   double distance = Math.sqrt(Math.pow(point.getX() - gobj.getX(), 2) + 
@@ -962,16 +343,18 @@ public class TestableGraphicsProgram extends GraphicsProgram {
                   return distance < 50;
               }
             };
+            f.description = "near (" + point.getX() + ", " + point.getY() + ")";
+            return f;
         }
         
-        public static final Filter near(double x, double y)
+        public static final GraphicFilter near(double x, double y)
         {
             return near(new GPoint(x,y));
         }
         
-        public static final Filter near(final GPoint point, final double distance)
+        public static final GraphicFilter near(final GPoint point, final double distance)
         {
-            return new Filter(){
+            GraphicFilter f = new GraphicFilter(){
                 public boolean test(GObject gobj)
                 {
                     double d = Math.sqrt(Math.pow(point.getX() - gobj.getX(), 2) + 
@@ -979,16 +362,18 @@ public class TestableGraphicsProgram extends GraphicsProgram {
                     return d < distance;
                 }
               };
+              f.description = "within " + distance + " pixels of (" + point.getX() + ", " + point.getY() + ")";
+              return f;
         }
         
-        public static final Filter near(double x, double y, double distance)
+        public static final GraphicFilter near(double x, double y, double distance)
         {
             return near(new GPoint(x, y), distance);
         }
         
-        public static final Filter lineStartingAt(final GPoint point)
+        public static final GraphicFilter lineStartingAt(final GPoint point)
         {
-            return new Filter(){
+            GraphicFilter f =  new GraphicFilter(){
                 public boolean test(GObject gobj)
                 {
                     if(!(gobj instanceof GLine))
@@ -996,15 +381,18 @@ public class TestableGraphicsProgram extends GraphicsProgram {
                     return ((GLine)gobj).getStartPoint().equals(point);
                 }
             };
+            f.description = "line starting at (" + point.getX() + ", " + point.getY() + ")";
+            return f;
         }
         
-        public static final Filter lineStartingAt(double x, double y)
+        public static final GraphicFilter lineStartingAt(double x, double y)
         {
             return lineStartingAt(new GPoint(x, y));
         }
-        public static final Filter lineEndingAt(final GPoint point)
+        
+        public static final GraphicFilter lineEndingAt(final GPoint point)
         {
-            return new Filter(){
+            GraphicFilter f = new GraphicFilter(){
                 public boolean test(GObject gobj)
                 {
                     if(!(gobj instanceof GLine))
@@ -1012,15 +400,18 @@ public class TestableGraphicsProgram extends GraphicsProgram {
                     return ((GLine)gobj).getEndPoint().equals(point);
                 }
             };
+            f.description = "line ending at (" + point.getX() + ", " + point.getY() + ")";
+            return f;
         }
         
-        public static final Filter lineEndingAt(double x, double y)
+        public static final GraphicFilter lineEndingAt(double x, double y)
         {
             return lineEndingAt(new GPoint(x, y));
         }
-        public static final Filter location(final GPoint point)
+        
+        public static final GraphicFilter locatedAt(final GPoint point)
         {
-            return new Filter(){
+            GraphicFilter f =  new GraphicFilter(){
                 public boolean test(GObject gobj)
                 {
                     if(gobj.getLocation().equals(point))
@@ -1028,109 +419,127 @@ public class TestableGraphicsProgram extends GraphicsProgram {
                     return false;
                 }
             };
+            f.description = "located at (" + point.getX() + ", " + point.getY() + ")";
+            return f;
         }
         
-        public static final Filter withText(final String text)
+        public static final GraphicFilter locatedAt(double x, double y)
         {
-            return new Filter(){
+            return locatedAt(new GPoint(x, y));  
+        }
+        
+        public static final GraphicFilter withText(final String text)
+        {
+            GraphicFilter f = new GraphicFilter(){
                 public boolean test(GObject gobj)
                 {
                     return gobj instanceof GLabel ? ((GLabel)gobj).getLabel().equals(text) : false;
                 }
             };
-        }
-       
-        
-        public static final Filter location(double x, double y)
-        {
-            return location(new GPoint(x, y));
+            f.description = "with text: \"" + text + "\"";
+            return f;
         }
         
-        public static final Filter width(final int width)
+        public static final GraphicFilter width(final int width)
         {
-            return new Filter(){
+            GraphicFilter f = new GraphicFilter(){
                 public boolean test( GObject gobj )
                 {
                     if(gobj.getWidth() == width)
                         return true;
                     return false;
-                }
-                
+                } 
             };
+            f.description = "width: " + width;
+            return f;
         }
         
-        public static final Filter height(final int height)
+        public static final GraphicFilter height(final int height)
         {
-            return new Filter(){
+            GraphicFilter f = new GraphicFilter(){
                 public boolean test( GObject gobj )
                 {
                     if(gobj.getHeight() == height)
                         return true;
                     return false;
-                }
-                
+                }    
             };
+            f.description = "height: " + height;
+            return f;
         }
         
-        public static final Filter color(final Color color)
+        public static final GraphicFilter color(final Color color)
         {
-            return new Filter(){
+            GraphicFilter f = new GraphicFilter(){
                 public boolean test( GObject gobj )
                 {
                     if(gobj.getColor().equals(color))
                         return true;
                     return false;
                 }
-                
             };
+            f.description = "color: " + color;
+            return f;
         }
         
-        public static final Filter type(final Class c)
+        public static final GraphicFilter type(final Class c)
         {
-            return new Filter(){
+            GraphicFilter f = new GraphicFilter(){
                 public boolean test(GObject gobj)
                 {
                     return c.isAssignableFrom(gobj.getClass());
                 }
             };
+            f.description = "class: " + c.getSimpleName();
+            return f;
         }
         
-        public static final Filter filled = new Filter() {
+        public static final GraphicFilter filled = new GraphicFilter() {
+            { this.setDescription("filled"); }
             public boolean test(GObject gobj)
             {
-                return GFillable.class.isAssignableFrom(gobj.getClass()) && ((GFillable)gobj).isFilled();
+               return GFillable.class.isAssignableFrom(gobj.getClass()) && ((GFillable)gobj).isFilled();
             }
         };
         
-        public static final Filter not_filled = new Filter() {
+        public static final GraphicFilter not_filled = new GraphicFilter() {
+            { this.setDescription("not filled"); }
             public boolean test(GObject gobj)
             {
                 return (GFillable.class.isAssignableFrom(gobj.getClass()) && !((GFillable)gobj).isFilled());
             }
         };
 
-        public static final Filter visible = new Filter() {
+        public static final GraphicFilter visible = new GraphicFilter() {
+            { this.setDescription("visible"); }
             public boolean test(GObject gobj)
             {
                 return gobj.isVisible();
             }
         };
         
-        public static final Filter not_visible = new Filter() {
+        public static final GraphicFilter not_visible = new GraphicFilter() {
+            { this.setDescription("not visible"); }
             public boolean test(GObject gobj)
             {
                 return !gobj.isVisible();
             }
         };
         
-        public static final Filter any = new Filter() {
+        public static final GraphicFilter any = new GraphicFilter() {
+            { this.setDescription("any"); }
+            
             public boolean test(GObject gobj)
             {
                 return true;
             }
         };
-        
                 
+        
+        
         public abstract boolean test(GObject gobj);
+        
     }
 }
+
+    
